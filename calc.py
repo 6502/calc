@@ -44,6 +44,11 @@ tkexpr = ("|".join(map(re.escape, sorted(ops.keys(), key=len, reverse=True))) +
           "|" + var +
           "|[^ ]")
 
+string_esc = {"n": "\n",
+              "t": "\t",
+              "f": "\f",
+              "v": "\v"}
+
 def expr(tk, i, level=max(v[0] for v in ops.values())):
     if level == 0:
         if tk[i] == "-":
@@ -54,7 +59,9 @@ def expr(tk, i, level=max(v[0] for v in ops.values())):
             if tk[i] != ")": raise RuntimeError("')' expected")
             return x, i+1
         if len(tk[i]) > 1 and tk[i][0] == "\"":
-            return tk[i][1:-1], i + 1
+            return re.sub("\\\\(.)",
+                          (lambda x: string_esc.get(x.group(1)) or x.group(1)),
+                          tk[i][1:-1]), i + 1
         if tk[i] in ("True", "False"):
             return tk[i] == "True", i + 1
         if re.match(var, tk[i]):
