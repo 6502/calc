@@ -32,7 +32,7 @@ def name(x):
         return x[0]
     raise RuntimeError("Only variables can be assigned")
 
-number = "[0-9]+(?:\\.[0-9]*)?(?:[EeDd][-+]?[0-9]+)?"
+number = "[0-9]+(?:\\.[0-9]*)?(?:[Ee][-+]?[0-9]+)?"
 string = "\"(?:[^\"\\\\]|\\\\.)*\""
 var = "[A-Za-z_][A-Za-z0-9_]*"
 
