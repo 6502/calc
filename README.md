@@ -6,7 +6,7 @@ using python `eval`)
 
 Supports exponentiation, add, sub, mul, div, modulo/formatting,
 shift, bitwise and/or/xor, comparison operators, logical and/or
-(not short-circuited), unary negation, parenthesized subexpressions
+(short-circuited), unary negation, parenthesized subexpressions
 and assignment (an operator like in C, not a statement like in Python).
 
 Atoms can be integers, floats, strings or variables.
