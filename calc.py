@@ -1,35 +1,38 @@
 import re, sys
 
-ops = {"**":  (1, "R", lambda x, y: value(x) ** value(y) ),
-       "*":   (2, "L", lambda x, y: value(x) * value(y)  ),
-       "/":   (2, "L", lambda x, y: value(x) / value(y)  ),
-       "%":   (2, "L", lambda x, y: value(x) % value(y)  ),
-       "+":   (3, "L", lambda x, y: value(x) + value(y)  ),
-       "-":   (3, "L", lambda x, y: value(x) - value(y)  ),
-       "<<":  (4, "L", lambda x, y: value(x) << value(y) ),
-       ">>":  (4, "L", lambda x, y: value(x) >> value(y) ),
-       "|":   (5, "L", lambda x, y: value(x) | value(y)  ),
-       "&":   (5, "L", lambda x, y: value(x) & value(y)  ),
-       "^":   (5, "L", lambda x, y: value(x) ^ value(y)  ),
-       "<":   (6, "L", lambda x, y: value(x) < value(y)  ),
-       "<=":  (6, "L", lambda x, y: value(x) <= value(y) ),
-       ">":   (6, "L", lambda x, y: value(x) > value(y)  ),
-       ">=":  (6, "L", lambda x, y: value(x) >= value(y) ),
-       "==":  (6, "L", lambda x, y: value(x) == value(y) ),
-       "!=":  (6, "L", lambda x, y: value(x) != value(y) ),
-       "and": (7, "L", lambda x, y: value(x) and value(y)),
-       "or":  (8, "L", lambda x, y: value(x) or value(y) ),
-       "=":   (9, "R", lambda x, y: (vars.__setitem__(name(x), value(y)),
-                                     value(y))[1])}
-
+ops = {"**":  (1, "R", lambda x, y: lambda : value(x) ** value(y) ),
+       "*":   (2, "L", lambda x, y: lambda : value(x) * value(y)  ),
+       "/":   (2, "L", lambda x, y: lambda : value(x) / value(y)  ),
+       "%":   (2, "L", lambda x, y: lambda : value(x) % value(y)  ),
+       "+":   (3, "L", lambda x, y: lambda : value(x) + value(y)  ),
+       "-":   (3, "L", lambda x, y: lambda : value(x) - value(y)  ),
+       "<<":  (4, "L", lambda x, y: lambda : value(x) << value(y) ),
+       ">>":  (4, "L", lambda x, y: lambda : value(x) >> value(y) ),
+       "|":   (5, "L", lambda x, y: lambda : value(x) | value(y)  ),
+       "&":   (5, "L", lambda x, y: lambda : value(x) & value(y)  ),
+       "^":   (5, "L", lambda x, y: lambda : value(x) ^ value(y)  ),
+       "<":   (6, "L", lambda x, y: lambda : value(x) < value(y)  ),
+       "<=":  (6, "L", lambda x, y: lambda : value(x) <= value(y) ),
+       ">":   (6, "L", lambda x, y: lambda : value(x) > value(y)  ),
+       ">=":  (6, "L", lambda x, y: lambda : value(x) >= value(y) ),
+       "==":  (6, "L", lambda x, y: lambda : value(x) == value(y) ),
+       "!=":  (6, "L", lambda x, y: lambda : value(x) != value(y) ),
+       "and": (7, "L", lambda x, y: lambda : value(x) and value(y)),
+       "or":  (8, "L", lambda x, y: lambda : value(x) or value(y) ),
+       "=":   (9, "R", lambda x, y: lambda : (vars.__setitem__(name(x),
+                                                               value(y)),
+                                              value(y))[1]),
+       ":=":  (10, "R", lambda x, y: (vars.__setitem__(name(x), y),
+                                      value(y))[1])}
 vars = {}
 
 def value(x):
-    return vars[x[0]] if isinstance(x, tuple) else x
+    if isinstance(x, tuple): x = value(vars[x[0]]) # Unbox
+    if callable(x): x = value(x())                 # Evaluate
+    return x
 
 def name(x):
-    if isinstance(x, tuple):
-        return x[0]
+    if isinstance(x, tuple): return x[0]
     raise RuntimeError("Only variables can be assigned")
 
 number = "[0-9]+(?:\\.[0-9]*)?(?:[Ee][-+]?[0-9]+)?"
@@ -44,13 +47,11 @@ tkexpr = ("|".join(map(re.escape, sorted(ops.keys(), key=len, reverse=True))) +
           "|" + var +
           "|[^ ]")
 
-string_esc = {"n": "\n",
-              "t": "\t",
-              "f": "\f",
-              "v": "\v"}
+string_esc = {"n": "\n", "t": "\t", "f": "\f", "v": "\v"}
 
 def expr(tk, i, level=max(v[0] for v in ops.values())):
     if level == 0:
+        if tk[i] == "#": raise RuntimeError("Expression expected")
         if tk[i] == "-":
             x, i = expr(tk, i + 1, 0)
             return -x, i
@@ -91,4 +92,8 @@ if __name__ == "__main__":
         input = raw_input
 
 while True:
-    print("%r" % calc(input("> ")))
+    try:
+        x = calc(input("> "))
+        print(x)
+    except EOFError: break
+    except Exception as e: print("Error: %s" % e)
