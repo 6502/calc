@@ -27,8 +27,8 @@ ops = {"**":  (1, "R", lambda x, y: lambda : value(x) ** value(y) ),
 vars = {}
 
 def value(x):
-    if isinstance(x, tuple): x = value(vars[x[0]]) # Unbox
-    if callable(x): x = value(x())                 # Evaluate
+    if isinstance(x, tuple): return value(vars[x[0]]) # Unbox
+    if callable(x): return value(x())                 # Evaluate
     return x
 
 def name(x):
