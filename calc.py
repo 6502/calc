@@ -19,12 +19,15 @@ ops = {"**":  (1, "R", lambda x, y: lambda : value(x) ** value(y) ),
        "!=":  (6, "L", lambda x, y: lambda : value(x) != value(y) ),
        "and": (7, "L", lambda x, y: lambda : value(x) and value(y)),
        "or":  (8, "L", lambda x, y: lambda : value(x) or value(y) ),
-       "=":   (9, "R", lambda x, y: lambda : (vars.__setitem__(name(x),
-                                                               value(y)),
-                                              value(y))[1]),
-       ":=":  (10, "R", lambda x, y: (vars.__setitem__(name(x), y),
-                                      value(y))[1])}
+       "=":   (9, "R", lambda x, y: lambda n=name(x): (setvar(n, value(y)),
+                                                       vars[n])[1]),
+       ":=":  (10, "R", lambda x, y: lambda n=name(x): (setvar(n, y),
+                                                        value(y))[1])}
 vars = {}
+
+def setvar(n, x):
+    vars[n] = x
+    return x
 
 def value(x):
     if isinstance(x, tuple): return value(vars[x[0]]) # Unbox
@@ -32,8 +35,7 @@ def value(x):
     return x
 
 def name(x):
-    if isinstance(x, tuple): return x[0]
-    raise RuntimeError("Only variables can be assigned")
+    return x[0]
 
 number = "[0-9]+(?:\\.[0-9]*)?(?:[Ee][-+]?[0-9]+)?"
 string = "\"(?:[^\"\\\\]|\\\\.)*\""
@@ -90,10 +92,9 @@ def calc(s):
 if __name__ == "__main__":
     if sys.version_info < (3,):
         input = raw_input
-
-while True:
-    try:
-        x = calc(input("> "))
-        print(x)
-    except EOFError: break
-    except Exception as e: print("Error: %s" % e)
+    while True:
+        try:
+            x = calc(input("> "))
+            print(x)
+        except EOFError: break
+        except Exception as e: print("Error: %s" % e)
