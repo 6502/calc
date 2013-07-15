@@ -54,7 +54,7 @@ def expr(tk, i, level=max(v[0] for v in ops.values())):
         if tk[i] == "#": raise RuntimeError("Expression expected")
         if tk[i] == "-":
             x, i = expr(tk, i + 1, 0)
-            return -x, i
+            return (lambda : -value(x)), i
         if tk[i] == "(":
             x, i = expr(tk, i + 1)
             if tk[i] != ")": raise RuntimeError("')' expected")
